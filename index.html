@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <meta charset="UTF-8">
+    <title>作业预留</title>
+</head>
+<link rel="stylesheet" href="css/weuix.min.css">
+<body>
+<div class="weui_cells weui_cells_form">
+    <!--图片上传-->
+    <div class="weui_cell">
+        <div class="weui_cell_bd weui_cell_primary">
+            <div class="weui_uploader">
+                <div class="weui_uploader_hd weui_cell">
+                    <div class="weui_cell_bd weui_cell_primary">图片上传</div>
+                    <!--<div class="weui_cell_ft">0/2</div>-->
+                </div>
+                <div class="weui_uploader_bd">
+                    <ul class="weui_uploader_files"></ul>
+                    <div class="weui_uploader_input_wrp">
+                        <input  id="upload_input" class="weui_uploader_input" type="file" accept="image/*" multiple="multiple">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--<div class="weui_btn_area">-->
+    <!--<a class="weui_btn bg-blue " href="javascript:" id="sub_btn">提交</a>-->
+<!--</div>-->
+<!--图片预览-->
+<div class="weui-gallery" style="display:none; opacity: 1;">
+    <span class="weui-gallery-img" ></span>
+    <div class="weui-gallery-opr">
+        <a href="javascript:" class="weui-gallery-exit">
+            <i class="icon icon-41 f-gray"></i>
+        </a>
+        <a href="javascript:" class="weui-gallery-del">
+            <i class="icon icon-26 f-gray"></i>
+        </a>
+    </div>
+</div>
+</body>
+<script src="js/zepto.min.js"></script>
+<script src="js/lrz.min.js"></script>
+<script >
+    $(function(){
+        //图片上传
+        $uploadInput = $('#upload_input');
+        $imglist = $('.weui_uploader_files');
+        var url = "src/upload.php";
+        $uploadInput.on('change',function(e){
+            var files = e.target.files;
+            var len = files.length;
+            for (var i=0; i < len; i++) {
+                lrz(files[i]).then(function (rst) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', url);
+
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            var obj = eval('(' + xhr.responseText + ')');
+                            var inputtmp = '<input type="hidden" name="images" value="'+obj.src+'" >';
+                            $('.weui_uploader_bd').append(inputtmp);
+                            var tpl = '<li class="weui_uploader_file"  style="background-image:url('+obj.src+')"></li>';
+                            $imglist.append(tpl);
+                            //alert(obj.src);
+                            } else {
+                                // 处理其他情况
+                            }
+                    };
+
+                    xhr.onerror = function () {
+                        // 处理错误
+                    };
+
+                    xhr.upload.onprogress = function (e) {
+                        // 上传进度
+                        var percentComplete = ((e.loaded / e.total) || 0) * 100;
+                    };
+
+                    // 添加参数
+                    rst.formData.append('size', rst.fileLen);
+                    rst.formData.append('base64', rst.base64);
+                    // 触发上传
+                    xhr.send(rst.formData);
+
+                    return rst;
+                })
+
+                    .catch(function (err) {
+                        alert(err);
+                    })
+
+            }//for end
+
+        });
+
+    });
+
+
+    //预览图片
+    $('.weui_uploader_file').live('tap',function(){
+        var img = $(this).attr('style');
+        $('.weui-gallery-img').attr('style',img);
+        $('.weui-gallery').css('display','block');
+
+    })
+
+    //退出预览
+    $('.weui-gallery-exit').on('tap',function(){
+        $('.weui-gallery').css('display','none');
+    })
+
+
+</script>
+</html>
